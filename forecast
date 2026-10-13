@@ -1,0 +1,2 @@
+#!/bin/sh
+exec python -B -m runtime_candidate.cli "$@"

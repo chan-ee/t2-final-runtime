@@ -1,0 +1,32 @@
+{
+  "kind": "reviewed source-only build context",
+  "repository": "chan-ee/t2-final-runtime",
+  "registry": "ghcr.io/chan-ee/t2-final-runtime",
+  "source_files": {
+    ".dockerignore": "0ffc954a5d06326af57bdc30a6ae3c2104db03ea848e90d7a9ac9b2a56f4ef2b",
+    "ARTIFACT_PROVENANCE.md": "f4cfa82c22bcda7c3d91166a3e8bfcddb51608dbdd67dfaf3d028ee294e3e442",
+    "Dockerfile": "f4fe2d7d34dc56ee3bc15b4c298694da8bdb158209a3a340ec21451f0b42a414",
+    "forecast": "9d22e8f9f47f0fa51a5dcc9c6b9bcf61ffc52c4d3de0b67be015b7f13373811e",
+    "LICENSE": "53090d413dbaec01154a87d67e9dfdd908881643eee858065a0d1da5c5d15dcc",
+    "requirements-runtime.txt": "a6e4e416452c074013b1e484b2027d1bf9f264b3ca1dae1e4c3335fd96986efa",
+    "runtime_candidate/__init__.py": "0db15e365a0fa1d05299e4da94deb1f5652147eb970bc919729bb729d82e5918",
+    "runtime_candidate/canonical_m0.py": "b4c0893a1b3c174e564264a2fc56c94633a175bcebc50ca8639a45546222350a",
+    "runtime_candidate/cli.py": "481f55a53e57f202302c5f78c3306e250f28c11101c4ba9b70983fd69210c874",
+    "runtime_candidate/horizons.py": "e82af15975f89bb3f49331bafd63e701a4da6951b9a962936532ca9ac282642c",
+    "runtime_candidate/pce_adapter.py": "5907dfc1a6b14cd072839a28e705ecb8c4c8214996365bf40bb90bdf6884c4e4",
+    "runtime_candidate/pce_constants.json": "8ea16518b0433bf166ef167cb7cfa2df59c80f54e7cee130b257fd7e19c09e73",
+    "runtime_candidate/pce_core.py": "999f2f7eff83f370479a078f78cbd08c9085a62991d8ae8193606d7758678608",
+    "runtime_candidate/pce_input.schema.json": "e8df337c510dcf06141b7f4c505350a077e602a653d4fb02ef9f74afa6cca8ef"
+  },
+  "allowed_metadata_files": [
+    "README.md",
+    "publication-source-manifest.json",
+    "verify_public_source.py",
+    ".github/workflows/publish.yml"
+  ],
+  "runtime_rounding_enabled": false,
+  "current_public_PCE_activation": 0,
+  "forecast_accuracy_verified": false,
+  "source_code_files_byte_identical_to_reviewed_runtime": true,
+  "license_change_only": "exact original Team257 MIT plus official upstream Track2 MIT grant; original remote-build files unchanged"
+}

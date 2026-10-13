@@ -1,2 +1,17 @@
-# t2-final-runtime
-Reviewed T2 forecasting runtime for Agenthon 2026; source-only, pinned dependencies and manual GHCR publication.
+# T2 source-only runtime
+
+This repository contains the reviewed standalone forecasting runtime and a manual image-publication workflow for `ghcr.io/chan-ee/t2-final-runtime`. It contains code and fixed algorithm settings, with no numeric research data, answers, private references, fitted coefficients, pretrained weights or credentials. Inference is offline. All fitted quantities are computed from the supplied own-unit cutoff prefix.
+
+Current public structural validation covers 104 directories, including the worked exemplar; PCE activation is **0**. The optional PCE implementation requires explicit own-unit source/statistic/availability metadata. The published-grid measurement experiment is **not applied** in this runtime. Structural/runtime/gate passes are not accuracy, score or ranking evidence. No Final accuracy or first-place claim is made.
+
+The Dockerfile pins the Python 3.13 Bookworm base by digest and thirteen package versions. The image runs as UID/GID 65534, exposes `forecast` on PATH, and uses no inference network. Package versions and a fixed base improve traceability; wheel hashes, builder state and image timestamps are not fully locked, so byte-identical rebuilds are not promised. The commit-derived `sha-<full-commit>` tag is deterministic in name; the recorded registry digest identifies the actual built image.
+
+The repository's LICENSE retains the original Team257 MIT license and the exact upstream Track2 MIT grant for the copied monthly-horizon helper. The original nine runtime/launcher source files remain byte-identical to the reviewed source bundle. Other Python packages retain their installed distribution license metadata.
+
+Only a repository owner manually dispatches `.github/workflows/publish.yml`. It fresh-clones this public repository at the exact event SHA, verifies the build-file whitelist and hashes, stages only fourteen reviewed files, builds Linux amd64, checks the CLI and installed versions offline, then pushes with the run's ephemeral `GITHUB_TOKEN` through `--password-stdin`. No personal access token or third-party action is used. Token permissions are `contents: read` and `packages: write`. Nothing runs on push, pull request or a schedule.
+
+The run log and step summary record source SHA, source-manifest hash, installed versions, build metadata and the actual immutable GHCR digest. The remote image still requires the same full container/structural checks used locally before submission. A successful build and CLI help check alone do not reproduce the 104-card gate validation.
+
+GitHub's first package publication defaults to private. After the first push, the owner must set this package's visibility to **Public** before relying on anonymous pulls; this workflow does not change visibility or require additional privileges. Use the resulting `ghcr.io/chan-ee/t2-final-runtime@sha256:...` reference for verification and submission.
+
+Primary references: [workflow dispatch and permission syntax](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax), [ephemeral GITHUB_TOKEN](https://docs.github.com/en/actions/tutorials/authenticate-with-github_token), [GHCR authentication, visibility and digest pulls](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry), [public practice-check scope](https://github.com/Agenthon-2026/track2-forecasting-public/blob/main/README.md), [upstream MIT license](https://github.com/Agenthon-2026/track2-forecasting-public/blob/main/LICENSE).

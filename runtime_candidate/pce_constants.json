@@ -1,0 +1,31 @@
+{
+  "pce_assets": [
+    "PCE_ALL",
+    "PCE_CORE"
+  ],
+  "cpi_assets": [
+    "CPI_ALL",
+    "CPI_CORE"
+  ],
+  "series_map": {
+    "PCE_ALL": "PCEPI",
+    "PCE_CORE": "PCEPILFE",
+    "CPI_ALL": "CPIAUCSL",
+    "CPI_CORE": "CPILFESL"
+  },
+  "training_window_complete_labels": 120,
+  "minimum_training_complete_labels": 60,
+  "ridge_penalty": 20.0,
+  "ridge_intercept_penalty": 0.0,
+  "privacy_mask": {
+    "CPI_ALL": [
+      "2022-06",
+      "2024-01",
+      "2024-02"
+    ],
+    "CPI_CORE": []
+  },
+  "oof_residual_calendar_months": 60,
+  "common_draw_seed": 1729,
+  "draws": 1000
+}

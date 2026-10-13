@@ -1,0 +1,75 @@
+name: Manual source-pinned GHCR publication
+'on':
+  workflow_dispatch:
+permissions: {}
+concurrency:
+  group: manual-ghcr-publication
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Fresh public checkout of event SHA and approved context
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_SERVER_URL" = "https://github.com"
+          test "$GITHUB_REPOSITORY" = "chan-ee/t2-final-runtime"
+          [[ "$GITHUB_SHA" =~ ^[0-9a-f]{40}$ ]]
+          T2_SOURCE="$RUNNER_TEMP/t2-public-source"
+          git -c credential.helper= clone --no-checkout --filter=blob:none --depth=1 -- "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY.git" "$T2_SOURCE"
+          git -C "$T2_SOURCE" -c credential.helper= fetch --no-tags --depth=1 origin "$GITHUB_SHA"
+          git -C "$T2_SOURCE" checkout --detach FETCH_HEAD
+          test "$(git -C "$T2_SOURCE" rev-parse HEAD)" = "$GITHUB_SHA"
+          python3 -B "$T2_SOURCE/verify_public_source.py" --source "$T2_SOURCE" --stage "$RUNNER_TEMP/t2-build-context"
+          printf 'T2_SOURCE=%s\nT2_IMAGE=ghcr.io/chan-ee/t2-final-runtime:sha-%s\n' "$T2_SOURCE" "$GITHUB_SHA" >> "$GITHUB_ENV"
+      - name: Build Linux amd64 from reviewed Dockerfile and pinned base
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker buildx version
+          docker buildx build --platform linux/amd64 --load --provenance=false \
+            --metadata-file "$RUNNER_TEMP/t2-build-metadata.json" \
+            --label "org.opencontainers.image.source=https://github.com/chan-ee/t2-final-runtime" \
+            --label "org.opencontainers.image.revision=$GITHUB_SHA" \
+            --label "org.opencontainers.image.licenses=MIT" \
+            --tag "$T2_IMAGE" --file "$RUNNER_TEMP/t2-build-context/Dockerfile" "$RUNNER_TEMP/t2-build-context"
+          test "$(docker image inspect "$T2_IMAGE" --format '{{.Os}}/{{.Architecture}}')" = "linux/amd64"
+          docker run --rm --network none --read-only --tmpfs /tmp:rw,nosuid,nodev \
+            --cap-drop ALL --security-opt no-new-privileges "$T2_IMAGE" forecast --help
+          docker run --rm --network none --read-only --tmpfs /tmp:rw,nosuid,nodev \
+            --cap-drop ALL --security-opt no-new-privileges "$T2_IMAGE" python -B -c \
+            'import importlib.metadata as m,json; names=["numpy","scipy","pyarrow","pandas","python-dateutil","pytz","tzdata","six","jsonschema","attrs","jsonschema-specifications","referencing","rpds-py"]; print(json.dumps({n:m.version(n) for n in names},sort_keys=True))' > "$RUNNER_TEMP/t2-installed-packages.json"
+      - name: Push using ephemeral GITHUB_TOKEN and record registry digest
+        shell: bash
+        env:
+          T2_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          export DOCKER_CONFIG="$RUNNER_TEMP/t2-ghcr-credentials"
+          mkdir -m 0700 "$DOCKER_CONFIG"
+          trap 'docker logout ghcr.io >/dev/null 2>&1 || true; rm -f "$DOCKER_CONFIG/config.json"' EXIT
+          printf '%s' "$T2_GITHUB_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
+          docker push "$T2_IMAGE"
+          docker image inspect "$T2_IMAGE" --format '{{json .RepoDigests}}' > "$RUNNER_TEMP/t2-repo-digests.json"
+          python3 -B - <<'PY'
+          import hashlib,json,os,pathlib
+          base=pathlib.Path(os.environ['RUNNER_TEMP'])
+          digests=json.loads((base/'t2-repo-digests.json').read_text())
+          matches=[d for d in digests if d.startswith('ghcr.io/chan-ee/t2-final-runtime@sha256:')]
+          assert len(matches)==1
+          proof={'source_commit':os.environ['GITHUB_SHA'],'sha_tag':os.environ['T2_IMAGE'],'immutable_registry_reference':matches[0],
+            'platform':'linux/amd64','build_metadata':json.loads((base/'t2-build-metadata.json').read_text()),
+            'installed_packages':json.loads((base/'t2-installed-packages.json').read_text()),
+            'source_manifest_sha256':hashlib.sha256((pathlib.Path(os.environ['T2_SOURCE'])/'publication-source-manifest.json').read_bytes()).hexdigest(),
+            'credential_kind':'ephemeral GITHUB_TOKEN via password-stdin','forecast_accuracy_verified':False,'current_public_PCE_activation':0,'measurement_rounding_enabled':False}
+          text=json.dumps(proof,indent=2,sort_keys=True)
+          (base/'t2-build-proof.json').write_text(text+'\n')
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as f:
+            f.write('## Source/image identity proof\n\n```json\n'+text+'\n```\n\nUse the registry digest, not a mutable tag. First publication defaults to private; the owner must set the package visibility to Public.\n')
+          print(text)
+          PY

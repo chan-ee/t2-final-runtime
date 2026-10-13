@@ -1,0 +1,8 @@
+*
+!Dockerfile
+!forecast
+!requirements-runtime.txt
+!LICENSE
+!ARTIFACT_PROVENANCE.md
+!runtime_candidate/
+!runtime_candidate/**
